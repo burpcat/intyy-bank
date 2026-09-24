@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set title = "Supervisor Override" %}
+{% block head %}{% if done %}<script type="text/javascript">
+if (window.opener && !window.opener.closed && window.opener.document.forms['reloadForm']) {
+  window.opener.document.forms['reloadForm'].submit();
+}
+window.close();
+</script>{% endif %}{% endblock %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+{% if done %}
+  <p><span class="stamp">APPROVED</span></p>
+  <p>Transaction {{ app_id }} approved by {{ a.approved_by }}. This window will close automatically.</p>
+{% elif not a %}
+  <p class="err">{{ error }}</p>
+  <p><a href="javascript:window.close()">Close Window</a></p>
+{% else %}
+<form name="frmOverride" method="post" action="/supervisorOverride.do" autocomplete="off">
+<input type="hidden" name="appId" value="{{ app_id }}">
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Authorisation Required &mdash; Ref {{ app_id }}</th></tr>
+  <tr><td colspan="2">{{ a.acctType }} for {{ a.name|upper }}, {{ brand.lbl_deposit }} {{ a.cents|money }}</td></tr>
+  {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
+  <tr><td width="45%"><label for="supId">Supervisor ID</label></td><td><input type="text" id="supId" name="supId" size="15"></td></tr>
+  <tr><td><label for="supPwd">Password</label></td><td><input type="password" id="supPwd" name="supPwd" size="15"></td></tr>
+  <tr><td colspan="2" align="center"><input type="submit" class="btn" value="Approve">
+    <input type="button" class="btn" value="Cancel" onclick="window.close();"></td></tr>
+  </table>
+</form>
+{% endif %}
+</td></tr></table>
+{% endblock %}

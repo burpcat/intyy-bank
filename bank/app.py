@@ -90,7 +90,9 @@ def _guard():
         db().commit()
         return message("Session Expired", "Your session has expired due to inactivity.", "/login.do")
     g.sid, g.user, g.role, g.sess = sid, row["username"], row["role"], json.loads(row["data"])
-    db().execute("update sessions set last_seen=? where sid=?", (now, sid))
+    if request.headers.get("X-KVFCU-Force-Override"):  # set only by the proxy (supervisor_required fault)
+        g.sess["force_override"] = True
+    db().execute("update sessions set last_seen=?, data=? where sid=?", (now, json.dumps(g.sess), sid))
     db().commit()
     return None
 
@@ -336,7 +338,7 @@ def open_account_review():
     if f["fundSrc"] not in FUNDING:
         return open_form_error(f, "Please select Funding Source.")
     appl = {**f, "cents": cents, "name": f"{m['first_name']} {m['last_name']}",
-            "override": cents > OVERRIDE_ABOVE, "approved": False}
+            "override": cents > OVERRIDE_ABOVE or g.sess.pop("force_override", False), "approved": False}
     if short_of_funds(appl):
         return open_form_error(f, INSUFFICIENT)
     app_id = secrets.token_hex(6).upper()
@@ -373,6 +375,27 @@ def open_account_confirm():
     db().commit()
     page()
     return render_template("open_confirm.html", a=appl, acct_no=acct_no, conf_no=conf_no, opened=opened)
+
+
+@app.route("/supervisorOverride.do", methods=["GET", "POST"])
+def supervisor_override():
+    """Pop-up window. Does not touch the page sequence, so the opener's review form stays valid."""
+    app_id = request.values.get("appId", "")
+    appl = g.sess.get("pending", {}).get(app_id)
+    if appl is None or not appl["override"]:
+        return render_template("supervisor.html", app_id=app_id, error="No application pending approval.")
+    if request.method == "GET":
+        return render_template("supervisor.html", app_id=app_id, a=appl)
+    sup, pwd = request.form.get("supId", ""), request.form.get("supPwd", "")
+    cred = USERS.get(sup)
+    if not cred or not secrets.compare_digest(cred[0].encode(), pwd.encode()):
+        return render_template("supervisor.html", app_id=app_id, a=appl, error="Invalid Supervisor ID or Password.")
+    if cred[1] != "supervisor":
+        return render_template("supervisor.html", app_id=app_id, a=appl,
+                               error="User is not authorised to approve this transaction.")
+    appl.update(approved=True, approved_by=sup)
+    save_sess()
+    return render_template("supervisor.html", app_id=app_id, a=appl, done=True)
 
 
 # ---------- close sub-account ----------

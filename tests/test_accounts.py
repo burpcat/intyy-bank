@@ -94,7 +94,7 @@ def test_restricted_user_denied(login):
 
 def unlabelled(html):
     """ids of visible form controls with no <label for=...>."""
-    controls = re.findall(r'<(?:input|select|textarea)\b(?![^>]*type="(?:hidden|submit|reset|image)")[^>]*>', html)
+    controls = re.findall(r'<(?:input|select|textarea)\b(?![^>]*type="(?:hidden|submit|reset|image|button)")[^>]*>', html)
     ids = [(re.search(r'\bid="([^"]+)"', t) or [None, t])[1] for t in controls]
     return [i for i in ids if f'<label for="{i}">' not in html]
 

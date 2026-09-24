@@ -15,10 +15,16 @@
   {% if a.override %}
   <tr><td colspan="2">
     {% if a.approved %}<span class="stamp">APPROVED</span> by supervisor {{ a.approved_by }}
-    {% else %}<span class="err">Supervisor approval required</span>{% endif %}
+    {% else %}<span class="err">Supervisor approval required</span>&nbsp;
+      <input type="button" class="btn" value="Supervisor Approval"
+        onclick="window.open('/supervisorOverride.do?appId={{ app_id }}', 'supOverride', 'width=440,height=320,resizable=no,scrollbars=no');">
+    {% endif %}
   </td></tr>
   {% endif %}
   </table>
+<form name="reloadForm" method="post" action="/openAccountReview.do">
+  <input type="hidden" name="appId" value="{{ app_id }}"><input type="hidden" name="pageSeq" value="{{ seq }}">
+</form>
 <br>
 <table border="0" cellspacing="0" cellpadding="0"><tr><td>
 <form name="frmConfirm" method="post" action="/openAccountConfirm.do">
