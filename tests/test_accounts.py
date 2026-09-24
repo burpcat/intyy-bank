@@ -58,6 +58,23 @@ def test_limit_reached_after_opens(login):
     assert "Member not eligible" in review(c, cifId=VALID[0]).text
 
 
+def test_transfer_funding_debits_primary(login):
+    c = login()
+    primary = "select balance_cents from accounts where mem_no=? and acct_type='Primary Savings'"
+    assert rows(primary, VALID[1]) == [(51200,)]
+    xfer = "Transfer from primary savings"
+    assert "Insufficient balance" in review(c, openAmt="512.01", fundSrc=xfer).text
+    aid = app_id(review(c, openAmt="300", fundSrc=xfer).text)
+    assert "$300.00 debited from Primary Savings" in c.post("/openAccountConfirm.do", data={"appId": aid}).text
+    assert rows(primary, VALID[1]) == [(21200,)]
+    # re-sent confirm: second debit would overdraw, so it is refused and nothing changes
+    assert "Insufficient balance" in c.post("/openAccountConfirm.do", data={"appId": aid}).text
+    assert rows(primary, VALID[1]) == [(21200,)]
+    assert rows("select count(*) from accounts where conf_no is not null") == [(1,)]
+    review(c, openAmt="300")  # cash funding leaves primary alone
+    assert rows(primary, VALID[1]) == [(21200,)]
+
+
 def test_back_after_review_is_page_expired(login):
     c = login()
     s = seq(c.get("/openAccount.do").text)

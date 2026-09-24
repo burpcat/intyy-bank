@@ -142,6 +142,19 @@ def open_subs(mem_no):
                         (mem_no, PRIMARY)).fetchone()[0]
 
 
+def primary_of(mem_no):
+    return db().execute("select * from accounts where mem_no=? and acct_type=? and status='OPEN'",
+                        (mem_no, PRIMARY)).fetchone()
+
+
+def short_of_funds(appl):
+    """True if a transfer-funded opening exceeds the primary savings balance."""
+    return appl["fundSrc"] == FUNDING[1] and primary_of(appl["cifId"])["balance_cents"] < appl["cents"]
+
+
+INSUFFICIENT = "Insufficient balance in Primary Savings for this transfer."
+
+
 def next_seq(name):
     db().execute("update seq set value=value+1 where name=?", (name,))
     return db().execute("select value from seq where name=?", (name,)).fetchone()[0]
@@ -322,9 +335,12 @@ def open_account_review():
         return open_form_error(f, f"{BRAND['lbl_deposit']} cannot exceed {money(MAX_DEPOSIT)}.")
     if f["fundSrc"] not in FUNDING:
         return open_form_error(f, "Please select Funding Source.")
+    appl = {**f, "cents": cents, "name": f"{m['first_name']} {m['last_name']}",
+            "override": cents > OVERRIDE_ABOVE, "approved": False}
+    if short_of_funds(appl):
+        return open_form_error(f, INSUFFICIENT)
     app_id = secrets.token_hex(6).upper()
-    pending[app_id] = appl = {**f, "cents": cents, "name": f"{m['first_name']} {m['last_name']}",
-                              "override": cents > OVERRIDE_ABOVE, "approved": False}
+    pending[app_id] = appl
     return render_template("open_review.html", seq=page(), app_id=app_id, a=appl)
 
 
@@ -341,6 +357,11 @@ def open_account_confirm():
                        "This transaction requires supervisor approval before it can be confirmed.")
     if open_subs(appl["cifId"]) >= MAX_OPEN_SUBS:
         return not_eligible()
+    if short_of_funds(appl):  # re-checked: balance may have moved since review
+        return message("Message", INSUFFICIENT)
+    if appl["fundSrc"] == FUNDING[1]:
+        db().execute("update accounts set balance_cents=balance_cents-? where acct_no=?",
+                     (appl["cents"], primary_of(appl["cifId"])["acct_no"]))
     acct_no = f"{next_seq('acct'):012d}"
     conf_no = f"{BRAND['prefix']}{next_seq('conf'):08d}"
     opened = business_date().isoformat()
@@ -401,8 +422,7 @@ def close_account_confirm():
     if reason not in CLOSE_REASONS:
         return render_template("close_reason.html", seq=page(), a=a, reasons=CLOSE_REASONS,
                                error="Please select Reason for Closure.")
-    primary = db().execute("select acct_no from accounts where mem_no=? and acct_type=? and status='OPEN'",
-                           (a["mem_no"], PRIMARY)).fetchone()[0]
+    primary = primary_of(a["mem_no"])["acct_no"]
     closure_no = f"CL{next_seq('closure'):08d}"
     closed = business_date().isoformat()
     db().execute("update accounts set balance_cents=balance_cents+? where acct_no=?",
