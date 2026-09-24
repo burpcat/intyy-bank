@@ -245,6 +245,47 @@ def test_named_fault_triggers_on_right_route_and_count(b):
     assert named == [("/menu.do", 2, "se2"), ("/banner.do", 2, "mt"), ("/banner.do", 3, "mt")]
 
 
+FIRES = {  # what the operator sees on the request the fault hits
+    "session_expire": lambda s, t: "Session Expired" in t,
+    "known_popup": lambda s, t: "Please update member KYC details" in t,
+    "unknown_popup": lambda s, t: 'action="/menu.do"' in t and "Member Services" not in t,
+    "supervisor_required": lambda s, t: "Member Services" in t,  # invisible here; checked on the next review
+    "server_error": lambda s, t: s == 500,
+    "maintenance": lambda s, t: "System under scheduled maintenance" in t,
+    "drop_after_confirm": lambda s, t: s is None or "Member Services" not in t,
+}
+
+
+@pytest.mark.parametrize("kind", sorted(proxy.NAMED_KINDS))
+def test_every_named_kind_fires_on_its_route_and_count_only(b, kind):
+    assert set(FIRES) == set(proxy.NAMED_KINDS)
+    b.login()
+    add_faults(b, {"id": f"f-{kind}", "kind": kind, "route": "GET /menu.do", "nth": 2})
+    first = b.get("/menu.do")
+    assert "Member Services" in first[2]
+    b.get("/banner.do")  # another route in between: must not advance /menu.do's count or fire
+    status, _, text = b.get("/menu.do")
+    assert FIRES[kind](status, text), (status, text[:300] if text else text)
+    b.get("/menu.do")
+    if kind == "supervisor_required":
+        assert "Supervisor approval required" in open_app(b, openAmt="100")[1]
+    menu = [(e["route_count"], e["decision"], e["named_id"]) for e in log(b) if e["path"] == "/menu.do"]
+    assert menu == [(1, "pass", None), (2, "named", f"f-{kind}"), (3, "pass", None)]
+    assert all(e["decision"] == "pass" for e in log(b) if e["path"] != "/menu.do")
+
+
+def test_reset_through_proxy_restores_seed_exactly(b, live):
+    from test_seed import dump
+    b.login()
+    aid, _ = open_app(b, fundSrc="Transfer from primary savings")
+    b.post("/openAccountConfirm.do", {"appId": aid})
+    var = live[2]
+    assert dump(var / "live.db") != dump(var / "seed.db")
+    assert json.loads(b.post("/__test__/reset")[2]) == {"ok": True}
+    assert dump(var / "live.db") == dump(var / "seed.db")
+    assert "Session Expired" in b.get("/menu.do")[2]
+
+
 def test_known_popup_resubmits_original_post(b):
     b.login()
     add_faults(b, {"id": "kyc", "kind": "known_popup", "route": "POST /memberSearchResult.do"})
