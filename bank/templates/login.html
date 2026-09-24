@@ -12,8 +12,8 @@
   <table width="100%" class="grid" cellspacing="0">
   <tr><th colspan="2" align="left">Staff Login</th></tr>
   {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
-  <tr><td width="40%"><label for="userId">User ID</label></td><td><input type="text" id="userId" name="userId" size="20" maxlength="20"></td></tr>
-  <tr><td><label for="pwd">Password</label></td><td><input type="password" id="pwd" name="pwd" size="20" maxlength="30"></td></tr>
+  <tr><td width="40%">{{ lbl("userId", "User ID") }}</td><td><input type="text" {{ fid("userId") }} name="userId" size="20" maxlength="20"></td></tr>
+  <tr><td>{{ lbl("pwd", "Password") }}</td><td><input type="password" {{ fid("pwd") }} name="pwd" size="20" maxlength="30"></td></tr>
   <tr><td colspan="2" align="center">
     <input type="submit" class="btn" value="Login">&nbsp;<input type="reset" class="btn" value="Clear">
   </td></tr>

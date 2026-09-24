@@ -4,8 +4,8 @@
 <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
 <form name="frmFind" method="get" action="/closeAccount.do">
   <table border="0" cellspacing="0" cellpadding="2"><tr>
-    <td><label for="memNo">{{ brand.lbl_mem }}</label></td>
-    <td><input type="text" id="memNo" name="memNo" size="10" maxlength="6" value="{{ m.mem_no if m else '' }}"></td>
+    <td>{{ lbl("memNo", brand.lbl_mem) }}</td>
+    <td><input type="text" {{ fid("memNo") }} name="memNo" size="10" maxlength="6" value="{{ m.mem_no if m else '' }}"></td>
     <td><input type="submit" class="btn" value="Go"></td>
   </tr></table>
 </form>
@@ -18,8 +18,12 @@
   <tr><th colspan="4" align="left">{{ m.first_name|upper }} {{ m.last_name|upper }} &mdash; Open Accounts</th></tr>
   <tr><th>Select</th><th>Account No.</th><th>Account Type</th><th>Balance</th></tr>
   {% for a in accts %}
-  <tr><td>{% if a.acct_type != "Primary Savings" %}<input type="radio" id="ac{{ a.acct_no }}" name="acctNo" value="{{ a.acct_no }}">{% endif %}</td>
-      <td><label for="ac{{ a.acct_no }}">{{ a.acct_no }}</label></td>
+  {% if a.acct_type != "Primary Savings" %}
+  <tr><td><input type="radio" {{ fid("ac" ~ a.acct_no) }} name="acctNo" value="{{ a.acct_no }}"></td>
+      <td>{{ lbl("ac" ~ a.acct_no, a.acct_no) }}</td>
+  {% else %}
+  <tr><td></td><td>{{ a.acct_no }}</td>
+  {% endif %}
       <td>{{ a.acct_type }}</td><td align="right">{{ a.balance_cents|money }}</td></tr>
   {% endfor %}
   </table>

@@ -7,9 +7,9 @@
   <table width="500" class="grid" cellspacing="0">
   <tr><th colspan="2" align="left">Search Criteria</th></tr>
   {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
-  <tr><td width="35%"><label for="memNo">{{ brand.lbl_mem }}</label> <span class="err">*</span></td>
-      <td><input type="text" id="memNo" name="memNo" size="12" maxlength="6"></td></tr>
-  <tr><td><label for="lastName">Last Name</label></td><td><input type="text" id="lastName" name="lastName" size="25"></td></tr>
+  <tr><td width="35%">{{ lbl("memNo", brand.lbl_mem) }} <span class="err">*</span></td>
+      <td><input type="text" {{ fid("memNo") }} name="memNo" size="12" maxlength="6"></td></tr>
+  <tr><td>{{ lbl("lastName", "Last Name") }}</td><td><input type="text" {{ fid("lastName") }} name="lastName" size="25"></td></tr>
   <tr><td colspan="2" align="center">
     {% if strip %}<img src="/static/bx1.svg" style="cursor:pointer" onclick="document.forms['frmSearch'].submit();">
     {% else %}<input type="submit" class="btn" value="Search">{% endif %}

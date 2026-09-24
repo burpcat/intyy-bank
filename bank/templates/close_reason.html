@@ -11,10 +11,10 @@
   <tr><td width="35%">Account No.</td><td>{{ a.acct_no }}</td></tr>
   <tr><td>Account Type</td><td>{{ a.acct_type }}</td></tr>
   <tr><td>Balance</td><td>{{ a.balance_cents|money }} <span class="small">(will be transferred to Primary Savings)</span></td></tr>
-  <tr><td><label for="reason">Reason for Closure</label> <span class="err">*</span></td>
-      <td><select id="reason" name="reason"><option value="">--Select--</option>
+  <tr><td>{{ lbl("reason", "Reason for Closure") }} <span class="err">*</span></td>
+      <td><select {{ fid("reason") }} name="reason"><option value="">--Select--</option>
       {% for r in reasons %}<option>{{ r }}</option>{% endfor %}</select></td></tr>
-  <tr><td><label for="remarks">Remarks</label></td><td><textarea id="remarks" name="remarks" rows="2" cols="50"></textarea></td></tr>
+  <tr><td>{{ lbl("remarks", "Remarks") }}</td><td><textarea {{ fid("remarks") }} name="remarks" rows="2" cols="50"></textarea></td></tr>
   <tr><td colspan="2" align="center">
     {% if strip %}<img src="/static/bx3.svg" style="cursor:pointer" onclick="document.forms['frmReason'].submit();">
     {% else %}<input type="submit" class="btn" value="Close Account">{% endif %}

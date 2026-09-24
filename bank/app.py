@@ -2,6 +2,7 @@
 
 Run behind the chaos proxy only: every request must carry X-KVFCU-Proxy.
 """
+import hashlib
 import json
 import os
 import re
@@ -14,6 +15,8 @@ from decimal import Decimal
 from pathlib import Path
 
 from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request
+from jinja2 import pass_context
+from markupsafe import Markup, escape
 
 from bank.brands import BRAND
 
@@ -22,6 +25,12 @@ VAR = Path(os.environ.get("KVFCU_VAR_DIR", ROOT / "var"))
 PROXY_SECRET = os.environ["KVFCU_PROXY_SECRET"].encode()
 TEST_MODE = os.environ.get("KVFCU_TEST_MODE") == "1"
 STRIP = os.environ.get("KVFCU_STRIP_SEMANTICS") == "1"  # key buttons become unlabelled images
+# Fraction of form fields whose HTML <label> association is removed (visible text stays), picked per
+# (seed, page, field) so the same seed always drops the same labels.
+DROP_LABELS = float(os.environ.get("KVFCU_DROP_LABELS", "0"))
+LABEL_SEED = os.environ.get("KVFCU_LABEL_SEED", "0")
+if not 0 <= DROP_LABELS <= 1:
+    raise SystemExit(f"KVFCU_DROP_LABELS must be from 0 to 1, got {DROP_LABELS}")
 IDLE_TIMEOUT = 300  # seconds, real time
 # Business date only (opened/closed on, page dates). Sessions always use real time.
 FIXED_DATE = date.fromisoformat(os.environ["KVFCU_FIXED_DATE"]) if os.environ.get("KVFCU_FIXED_DATE") else None
@@ -69,6 +78,27 @@ def usdate(iso):
 def _ctx():
     return dict(brand=BRAND, user=g.get("user"), today=business_date().strftime("%m/%d/%Y"),
                 sub_types=SUB_TYPES, funding=FUNDING, strip=STRIP)
+
+
+def label_kept(page, field):
+    digest = hashlib.sha256(f"{LABEL_SEED}|{page}|{field}".encode()).digest()
+    return int.from_bytes(digest[:8], "big") / 2**64 >= DROP_LABELS
+
+
+@app.template_global()
+@pass_context
+def lbl(ctx, field, text):
+    """Visible field name, wrapped in <label for> unless dropped on this page (ctx.name = template)."""
+    if label_kept(ctx.name, field):
+        return Markup(f'<label for="{escape(field)}">{escape(text)}</label>')
+    return escape(text)
+
+
+@app.template_global()
+@pass_context
+def fid(ctx, field):
+    """The input's id attribute; omitted when its label is dropped, since only the label used it."""
+    return Markup(f'id="{escape(field)}"') if label_kept(ctx.name, field) else Markup("")
 
 
 def message(title, msg, link=None, link_text="Click here to login again"):

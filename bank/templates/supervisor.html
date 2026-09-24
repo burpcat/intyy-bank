@@ -21,8 +21,8 @@ window.close();
   <tr><th colspan="2" align="left">Authorisation Required &mdash; Ref {{ app_id }}</th></tr>
   <tr><td colspan="2">{{ a.acctType }} for {{ a.name|upper }}, {{ brand.lbl_deposit }} {{ a.cents|money }}</td></tr>
   {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
-  <tr><td width="45%"><label for="supId">Supervisor ID</label></td><td><input type="text" id="supId" name="supId" size="15"></td></tr>
-  <tr><td><label for="supPwd">Password</label></td><td><input type="password" id="supPwd" name="supPwd" size="15"></td></tr>
+  <tr><td width="45%">{{ lbl("supId", "Supervisor ID") }}</td><td><input type="text" {{ fid("supId") }} name="supId" size="15"></td></tr>
+  <tr><td>{{ lbl("supPwd", "Password") }}</td><td><input type="password" {{ fid("supPwd") }} name="supPwd" size="15"></td></tr>
   <tr><td colspan="2" align="center"><input type="submit" class="btn" value="Approve">
     <input type="button" class="btn" value="Cancel" onclick="window.close();"></td></tr>
   </table>
