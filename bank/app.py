@@ -6,17 +6,19 @@ import json
 import os
 import re
 import secrets
+import shutil
 import sqlite3
 import time
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from flask import Flask, g, make_response, redirect, render_template, request
+from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request
 
 ROOT = Path(__file__).resolve().parent.parent
 VAR = Path(os.environ.get("KVFCU_VAR_DIR", ROOT / "var"))
 PROXY_SECRET = os.environ["KVFCU_PROXY_SECRET"].encode()
+TEST_MODE = os.environ.get("KVFCU_TEST_MODE") == "1"
 IDLE_TIMEOUT = 300  # seconds, real time
 # Business date only (opened/closed on, page dates). Sessions always use real time.
 FIXED_DATE = date.fromisoformat(os.environ["KVFCU_FIXED_DATE"]) if os.environ.get("KVFCU_FIXED_DATE") else None
@@ -80,7 +82,9 @@ def message(title, msg, link=None, link_text="Click here to login again"):
 def _guard():
     if not secrets.compare_digest(request.headers.get("X-KVFCU-Proxy", "").encode(), PROXY_SECRET):
         return make_response("Forbidden\n", 403, {"Content-Type": "text/plain"})
-    if request.path.startswith(("/static/", "/__test__/")) or request.path == "/login.do":
+    if request.path.startswith("/__test__/"):
+        return None if TEST_MODE else abort(404)
+    if request.path.startswith("/static/") or request.path == "/login.do":
         return None
     sid = request.cookies.get("JSESSIONID")
     if not sid:
@@ -458,3 +462,38 @@ def close_account_confirm():
     db().commit()
     page()
     return render_template("close_confirm.html", a=a, primary=primary, closure_no=closure_no, closed=closed)
+
+
+# ---------- test endpoints (KVFCU_TEST_MODE=1 only; 404 otherwise) ----------
+
+@app.route("/__test__/reset", methods=["POST"])
+def test_reset():
+    """Restore seed data; seed.db holds no sessions, so this also logs everyone out."""
+    shutil.copyfile(VAR / "seed.db", VAR / "live.db")
+    return jsonify(ok=True)
+
+
+@app.route("/__test__/clock", methods=["POST"])
+def test_clock():
+    """Body {"date": "YYYY-MM-DD"} fixes the business date; {"date": null} clears it."""
+    global FIXED_DATE
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or "date" not in body:
+        return jsonify(error='body must be {"date": "YYYY-MM-DD"} or {"date": null}'), 400
+    try:
+        FIXED_DATE = date.fromisoformat(body["date"]) if body["date"] is not None else None
+    except (TypeError, ValueError):
+        return jsonify(error="date must be YYYY-MM-DD"), 400
+    return jsonify(date=business_date().isoformat(), fixed=FIXED_DATE is not None)
+
+
+@app.route("/__test__/oracle")
+def test_oracle():
+    """Ground truth after a dropped reply: accounts whose notes match exactly."""
+    notes = request.args.get("notes")
+    if notes is None:
+        return jsonify(error="notes query parameter is required"), 400
+    found = db().execute("select acct_no, status, conf_no from accounts where notes=? order by acct_no",
+                         (notes,)).fetchall()
+    return jsonify(exists=bool(found), count=len(found),
+                   accounts=[{"account_number": a, "status": s, "confirmation_number": c} for a, s, c in found])
