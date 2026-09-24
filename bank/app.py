@@ -15,6 +15,8 @@ from pathlib import Path
 
 from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request
 
+from bank.brands import BRAND
+
 ROOT = Path(__file__).resolve().parent.parent
 VAR = Path(os.environ.get("KVFCU_VAR_DIR", ROOT / "var"))
 PROXY_SECRET = os.environ["KVFCU_PROXY_SECRET"].encode()
@@ -25,12 +27,6 @@ FIXED_DATE = date.fromisoformat(os.environ["KVFCU_FIXED_DATE"]) if os.environ.ge
 ROLES = ("TELLER", "SUPERVISOR", "RESTRICTED")
 USERS = {os.environ[f"KVFCU_{r}_USER"]: (os.environ[f"KVFCU_{r}_PASS"], r.lower())
          for r in ROLES if os.environ.get(f"KVFCU_{r}_USER")}
-
-BRANDS = {
-    "keystone": dict(name="Keystone Valley Federal Credit Union", short="KVFCU", css="kvfcu.css",
-                     logo="kvfcu_logo.svg", prefix="KV", lbl_mem="Member No.", lbl_deposit="Opening Deposit"),
-}
-BRAND = BRANDS["keystone"]
 
 PRIMARY = "Primary Savings"
 SUB_TYPES = ["Share Savings", "Money Market", "Share Certificate"]

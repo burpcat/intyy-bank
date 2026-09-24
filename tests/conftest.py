@@ -18,6 +18,7 @@ from seed import seed  # noqa: E402
 
 seed.build(VAR)
 from bank import app as bank  # noqa: E402
+from chaos import proxy  # noqa: E402
 
 VALID, AT_LIMIT = seed.member_numbers()
 
