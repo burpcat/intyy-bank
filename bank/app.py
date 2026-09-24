@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 VAR = Path(os.environ.get("KVFCU_VAR_DIR", ROOT / "var"))
 PROXY_SECRET = os.environ["KVFCU_PROXY_SECRET"].encode()
 IDLE_TIMEOUT = 300  # seconds, real time
+# Business date only (opened/closed on, page dates). Sessions always use real time.
+FIXED_DATE = date.fromisoformat(os.environ["KVFCU_FIXED_DATE"]) if os.environ.get("KVFCU_FIXED_DATE") else None
 ROLES = ("TELLER", "SUPERVISOR", "RESTRICTED")
 USERS = {os.environ[f"KVFCU_{r}_USER"]: (os.environ[f"KVFCU_{r}_PASS"], r.lower())
          for r in ROLES if os.environ.get(f"KVFCU_{r}_USER")}
@@ -163,7 +165,7 @@ def next_seq(name):
 
 
 def business_date():
-    return date.today()
+    return FIXED_DATE or date.today()
 
 
 def can_transact():
