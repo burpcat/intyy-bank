@@ -9,21 +9,20 @@
   {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
   <tr><td colspan="2">
     <table width="100%" border="0" cellspacing="0" cellpadding="2">
-    <tr><td width="35%">A/c Holder ID <span class="err">*</span></td>
-        <td><input type="text" name="cifId" size="10" maxlength="6" value="{{ f.cifId }}"></td></tr>
-    <tr><td>Type of A/c <span class="err">*</span></td>
-        <td><select name="acctType"><option value="">--Select--</option>
+    <tr><td width="35%"><label for="cifId">A/c Holder ID</label> <span class="err">*</span></td>
+        <td><input type="text" id="cifId" name="cifId" size="10" maxlength="6" value="{{ f.cifId }}"></td></tr>
+    <tr><td><label for="acctType">Type of A/c</label> <span class="err">*</span></td>
+        <td><select id="acctType" name="acctType"><option value="">--Select--</option>
         {% for t in sub_types %}<option{% if f.acctType == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
         </select></td></tr>
-    <tr><td>{{ brand.lbl_deposit }} ($) <span class="err">*</span></td>
-        <td><input type="text" name="openAmt" size="12" value="{{ f.openAmt }}"></td></tr>
-    <tr><td>Funding Source <span class="err">*</span></td>
-        <td><select name="fundSrc"><option value="">--Select--</option>
+    <tr><td><label for="openAmt">{{ brand.lbl_deposit }} ($)</label> <span class="err">*</span></td>
+        <td><input type="text" id="openAmt" name="openAmt" size="12" value="{{ f.openAmt }}"></td></tr>
+    <tr><td><label for="fundSrc">Funding Source</label> <span class="err">*</span></td>
+        <td><select id="fundSrc" name="fundSrc"><option value="">--Select--</option>
         {% for s in funding %}<option{% if f.fundSrc == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
         </select></td></tr>
-    <tr><td>Nominee</td><td><input type="text" name="nomName" size="30" value="{{ f.nomName }}"></td></tr>
-    <tr><td></td><td><textarea name="txtRemarks" rows="3" cols="40">{{ f.notes }}</textarea>
-        <br><span class="small">Any other information</span></td></tr>
+    <tr><td><label for="nomName">Nominee Name</label></td><td><input type="text" id="nomName" name="nomName" size="30" value="{{ f.nomName }}"></td></tr>
+    <tr><td><label for="txtRemarks">Notes</label></td><td><textarea id="txtRemarks" name="txtRemarks" rows="3" cols="40">{{ f.notes }}</textarea></td></tr>
     </table>
   </td></tr>
   <tr><td colspan="2" align="center">

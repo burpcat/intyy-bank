@@ -92,11 +92,30 @@ def test_restricted_user_denied(login):
     assert "Primary Savings" in c.get(f"/memberDetail.do?memNo={VALID[0]}").text  # view still allowed
 
 
+def unlabelled(html):
+    """ids of visible form controls with no <label for=...>."""
+    controls = re.findall(r'<(?:input|select|textarea)\b(?![^>]*type="(?:hidden|submit|reset|image)")[^>]*>', html)
+    ids = [(re.search(r'\bid="([^"]+)"', t) or [None, t])[1] for t in controls]
+    return [i for i in ids if f'<label for="{i}">' not in html]
+
+
+def test_every_control_is_labelled(login):
+    c = login()
+    s = seq(c.get("/memberSearch.do").text)
+    sub = rows("select acct_no from accounts where mem_no=? and acct_type<>'Primary Savings'", VALID[0])[0][0]
+    pages = [c.get("/login.do").text, c.get("/memberSearch.do").text, c.get(f"/balanceEnquiry.do?memNo={VALID[0]}").text,
+             c.get("/openAccount.do").text, c.get(f"/closeAccount.do?memNo={VALID[0]}").text]
+    pages.append(c.post("/closeAccountReason.do", data={"acctNo": sub, "pageSeq": seq(pages[-1])}).text)
+    assert s and all(unlabelled(p) == [] for p in pages), [unlabelled(p) for p in pages]
+
+
 def test_close_account(login):
     c = login()
     (primary, p_bal), (sub, s_bal) = rows(
         "select acct_no, balance_cents from accounts where mem_no=? order by acct_no", VALID[0])
     page = c.get(f"/closeAccount.do?memNo={VALID[0]}").text
+    assert f'value="{primary}"' not in page and f'value="{sub}"' in page  # primary is not selectable
+    # a hand-crafted POST for primary is still refused server-side
     assert "cannot be closed" in c.post("/closeAccountReason.do", data={"acctNo": primary, "pageSeq": seq(page)}).text
     page = c.get(f"/closeAccount.do?memNo={VALID[0]}").text
     assert "Close Account" in c.post("/closeAccountReason.do", data={"acctNo": sub, "pageSeq": seq(page)}).text

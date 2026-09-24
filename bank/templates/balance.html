@@ -4,8 +4,8 @@
 <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
 <form name="frmBal" method="get" action="/balanceEnquiry.do">
   <table border="0" cellspacing="0" cellpadding="2"><tr>
-    <td>{{ brand.lbl_mem }}</td>
-    <td><input type="text" name="memNo" size="10" maxlength="6" value="{{ m.mem_no if m else '' }}"></td>
+    <td><label for="memNo">{{ brand.lbl_mem }}</label></td>
+    <td><input type="text" id="memNo" name="memNo" size="10" maxlength="6" value="{{ m.mem_no if m else '' }}"></td>
     <td><input type="submit" class="btn" value="Go"></td>
   </tr></table>
 </form>
