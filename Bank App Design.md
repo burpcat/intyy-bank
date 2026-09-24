@@ -235,7 +235,7 @@ The contract does not expose these thresholds. intyy must discover them.
 - Deeply nested table layouts.
 - A three-frame frameset.
 - No test IDs.
-- Missing labels, added last (section 19, step 10). Every page is first built with proper labels; labels are then randomly removed.
+- Missing labels, added last (section 19, step 10). Every page is first built with proper labels; the HTML label association is then removed from a seeded random set of fields. The field names stay visible on screen.
 - **Inconsistent names between pages:** "Member No." on search, "CIF No." on detail, "A/c Holder ID" on the open form.
 - Slow, uneven response times (from the proxy).
 - Session timeouts, with a timed `alert()` warning.
@@ -473,6 +473,8 @@ Keep the set small. Focus on what intyy depends on.
 7. Strip-semantics mode and variant mode.
 8. Tests.
 9. `CONTRACT.md` and `README.md`.
-10. Label removal. Until this step, every input has a proper label. Now randomly remove labels from inputs.
+10. Label removal. Until this step, every input has a proper HTML label. Now remove the HTML `<label>` association from a random set of inputs.
+    - The field names stay on screen. The app must still look like a normal bank app; only the HTML association a scraper uses to name a field goes away.
+    - The set is seeded (`KVFCU_DROP_LABELS` fraction, `KVFCU_LABEL_SEED`), so a run can be reproduced.
     - intyy must locate a field by its label when the label is present.
     - When the label is missing, intyy must fall back to alternatives (nearby text, position, field order, and so on).

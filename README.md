@@ -44,6 +44,9 @@ browser / intyy -> chaos proxy :8080 (chaos/proxy.py, aiohttp) -> bank app :8081
   don't check it: a refresh re-submits and creates a second account.
 - **Supervisor pop-up.** On approval, the pop-up re-submits a hidden `reloadForm` in its opener. This
   avoids the browser's "resubmit form?" prompt, and it doesn't bump the page counter.
+- **Label removal.** Templates never write `<label>` or input `id`s directly. They call `lbl(field, text)`
+  and `fid(field)`, which drop the association (not the visible text) when
+  `hash(KVFCU_LABEL_SEED | template | field) < KVFCU_DROP_LABELS`. New form fields must use these helpers.
 - **Variants.** `bank/brands.py` holds per-tenant labels, palette, branch codes, and column order.
   The proxy's fault pages use the same table.
 
@@ -74,7 +77,7 @@ text even from the image files.
 
 ## Tests
 
-`make test` runs 67 tests. The six required by the design (section 17):
+`make test` runs 72 tests. The six required by the design (section 17):
 
 | Requirement | Test |
 |---|---|

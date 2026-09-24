@@ -1,6 +1,9 @@
 # KVFCU test target: contract
 
-**Version 1.0.0** (semantic versioning: a breaking change to anything below bumps the major version).
+**Version 1.1.0** (semantic versioning: a breaking change to anything below bumps the major version).
+
+- 1.1.0: added `KVFCU_DROP_LABELS` and `KVFCU_LABEL_SEED` (section 4).
+- 1.0.0: first version.
 
 This is the only document the automation side may rely on. Everything not written here (screens, page
 layouts, labels, markup, URLs, flows, business rules and their limits) must be discovered from the live app.
@@ -40,6 +43,8 @@ Values are never stored in the repo. Whoever runs the instance sets them.
 | `KVFCU_TEST_MODE` | `1` or unset | `1` enables the test endpoints (section 8), entropy, and named faults. Otherwise those are off and every test endpoint returns 404. Baseline slowness (section 6) applies either way. |
 | `KVFCU_VARIANT` | `keystone` (default), `lakeshore` | Which bank this instance is. `lakeshore` is a second credit union on the same vendor software. It differs in branding and in small screen details. One instance is one bank; restart to switch. |
 | `KVFCU_STRIP_SEMANTICS` | `1` or unset | Some buttons render as images with no text, no alt text, no title, and no accessible name. |
+| `KVFCU_DROP_LABELS` | number from 0 to 1, default `0` | That fraction of form fields lose their HTML label association. Each field's visible name stays on screen exactly as before; it is just no longer tied to its input. `0` keeps every label, `1` removes them all. |
+| `KVFCU_LABEL_SEED` | any string, default `0` | Which fields lose their label. The same seed and fraction always remove the same labels, on every page load and every restart. Each page decides independently. |
 | `KVFCU_FIXED_DATE` | `YYYY-MM-DD` or unset | Fixes the business date at startup (section 7). |
 | `KVFCU_DELAY_SCALE` | number, default `1` | Multiplies the real waiting time of delays and hangs, for fast harness runs. The fault log always records the nominal, unscaled `delay_ms`, so logs stay comparable. |
 
