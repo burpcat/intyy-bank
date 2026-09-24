@@ -16,7 +16,8 @@
       {% for r in reasons %}<option>{{ r }}</option>{% endfor %}</select></td></tr>
   <tr><td><label for="remarks">Remarks</label></td><td><textarea id="remarks" name="remarks" rows="2" cols="50"></textarea></td></tr>
   <tr><td colspan="2" align="center">
-    <input type="submit" class="btn" value="Close Account">
+    {% if strip %}<img src="/static/bx3.svg" style="cursor:pointer" onclick="document.forms['frmReason'].submit();">
+    {% else %}<input type="submit" class="btn" value="Close Account">{% endif %}
   </td></tr>
   </table>
 </form>

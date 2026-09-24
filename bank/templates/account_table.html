@@ -1,7 +1,14 @@
+{% set heads = {"acct_no": "Account No.", "acct_type": "Account Type", "balance": "Balance",
+                "status": "Status", "opened": "Opened On"} %}
 <table width="100%" class="grid" cellspacing="0">
-<tr><th>Account No.</th><th>Account Type</th><th>Balance</th><th>Status</th><th>Opened On</th></tr>
+<tr>{% for c in brand.cols %}<th>{{ heads[c] }}</th>{% endfor %}</tr>
 {% for a in accts %}
-<tr><td>{{ a.acct_no }}</td><td>{{ a.acct_type }}</td><td align="right">{{ a.balance_cents|money }}</td>
-    <td>{{ a.status }}</td><td>{{ a.opened_on|usdate }}</td></tr>
+<tr>{% for c in brand.cols %}
+  {%- if c == "acct_no" %}<td>{{ a.acct_no }}</td>
+  {%- elif c == "acct_type" %}<td>{{ a.acct_type }}</td>
+  {%- elif c == "balance" %}<td align="right">{{ a.balance_cents|money }}</td>
+  {%- elif c == "status" %}<td>{{ a.status }}</td>
+  {%- else %}<td>{{ a.opened_on|usdate }}</td>{% endif %}
+{%- endfor %}</tr>
 {% endfor %}
 </table>

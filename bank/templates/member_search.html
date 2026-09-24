@@ -11,9 +11,8 @@
       <td><input type="text" id="memNo" name="memNo" size="12" maxlength="6"></td></tr>
   <tr><td><label for="lastName">Last Name</label></td><td><input type="text" id="lastName" name="lastName" size="25"></td></tr>
   <tr><td colspan="2" align="center">
-    <table border="0" cellspacing="0" cellpadding="0"><tr><td>
-      <input type="submit" class="btn" value="Search">
-    </td></tr></table>
+    {% if strip %}<img src="/static/bx1.svg" style="cursor:pointer" onclick="document.forms['frmSearch'].submit();">
+    {% else %}<input type="submit" class="btn" value="Search">{% endif %}
   </td></tr>
   </table>
 </form>

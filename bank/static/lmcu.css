@@ -1,0 +1,22 @@
+body { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; margin: 0; background: #FFFFFF; color: #000000; }
+td, th, input, select, textarea { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; }
+a { color: #1F4D2B; }
+a:hover { color: #8A5A00; }
+.small { font-size: 10px; }
+.bankname { font-size: 16px; font-weight: bold; color: #F3E6C0; }
+.banner { background: #1F4D2B; color: #FFFFFF; }
+.banner .small { color: #E8DDB5; }
+.bannerlink { color: #F3E6C0; font-weight: bold; }
+.marq { background: #F3E6C0; color: #1F4D2B; font-weight: bold; padding: 2px; }
+.menu { background: #FBF6E6; }
+.menuhdr { background: #1F4D2B; color: #FFFFFF; font-weight: bold; }
+.pgtitle { background: #F3E6C0; color: #1F4D2B; font-weight: bold; font-size: 12px; border-bottom: 2px solid #1F4D2B; }
+table.grid { border-collapse: collapse; }
+table.grid td, table.grid th { border: 1px solid #6F8F72; padding: 3px 5px; }
+table.grid th { background: #1F4D2B; color: #FFFFFF; }
+.btn { background: #D4D0C8; color: #000000; border: 2px outset #FFFFFF; font-weight: bold; padding: 1px 10px; cursor: pointer; }
+.btn:active { border-style: inset; }
+.warn { color: #CC0000; font-weight: bold; }
+.err { color: #FF0000; font-weight: bold; }
+.stamp { color: #009900; font-size: 18px; font-weight: bold; border: 3px double #009900; padding: 2px 10px; }
+.footer { font-size: 10px; color: #555555; border-top: 2px solid #F3E6C0; }

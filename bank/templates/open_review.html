@@ -10,6 +10,7 @@
   <tr><td>Type of A/c</td><td>{{ a.acctType }}</td></tr>
   <tr><td>{{ brand.lbl_deposit }}</td><td>{{ a.cents|money }}</td></tr>
   <tr><td>Funding Source</td><td>{{ a.fundSrc }}</td></tr>
+  {% if brand.branches %}<tr><td>Branch Code</td><td>{{ a.brCode }}</td></tr>{% endif %}
   <tr><td>Nominee</td><td>{{ a.nomName }}</td></tr>
   <tr><td>Remarks</td><td style="white-space:pre-wrap">{{ a.notes }}</td></tr>
   {% if a.override %}
@@ -29,9 +30,12 @@
 <table border="0" cellspacing="0" cellpadding="0"><tr><td>
 <form name="frmConfirm" method="post" action="/openAccountConfirm.do">
   <input type="hidden" name="appId" value="{{ app_id }}">
-  <input type="submit" class="btn" value="Confirm"
+  {% if strip and a.override and not a.approved %}<img src="/static/bx2.svg" style="opacity:0.4">
+  {% elif strip %}<img src="/static/bx2.svg" style="cursor:pointer"
+    onclick="if (confirm('Are you sure you want to open this account?')) document.forms['frmConfirm'].submit();">
+  {% else %}<input type="submit" class="btn" value="Confirm"
     {% if a.override and not a.approved %}disabled{% endif %}
-    onclick="return confirm('Are you sure you want to open this account?');">
+    onclick="return confirm('Are you sure you want to open this account?');">{% endif %}
 </form>
 </td><td>&nbsp;<a href="/openAccount.do?memNo={{ a.cifId }}">Modify</a></td></tr></table>
 </td></tr></table>

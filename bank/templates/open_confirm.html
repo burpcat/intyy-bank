@@ -12,6 +12,7 @@
   <tr><td>Type of A/c</td><td>{{ a.acctType }}</td></tr>
   <tr><td>{{ brand.lbl_deposit }}</td><td>{{ a.cents|money }}</td></tr>
   <tr><td>Funding Source</td><td>{{ a.fundSrc }}{% if a.fundSrc == funding[1] %} &mdash; {{ a.cents|money }} debited from Primary Savings{% endif %}</td></tr>
+  {% if brand.branches %}<tr><td>Branch Code</td><td>{{ a.brCode }}</td></tr>{% endif %}
   <tr><td>Nominee</td><td>{{ a.nomName }}</td></tr>
   <tr><td>Remarks</td><td style="white-space:pre-wrap">{{ a.notes }}</td></tr>
   <tr><td>Opened On</td><td>{{ opened|usdate }}</td></tr>

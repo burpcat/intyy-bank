@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 VAR = Path(os.environ.get("KVFCU_VAR_DIR", ROOT / "var"))
 PROXY_SECRET = os.environ["KVFCU_PROXY_SECRET"].encode()
 TEST_MODE = os.environ.get("KVFCU_TEST_MODE") == "1"
+STRIP = os.environ.get("KVFCU_STRIP_SEMANTICS") == "1"  # key buttons become unlabelled images
 IDLE_TIMEOUT = 300  # seconds, real time
 # Business date only (opened/closed on, page dates). Sessions always use real time.
 FIXED_DATE = date.fromisoformat(os.environ["KVFCU_FIXED_DATE"]) if os.environ.get("KVFCU_FIXED_DATE") else None
@@ -67,7 +68,7 @@ def usdate(iso):
 @app.context_processor
 def _ctx():
     return dict(brand=BRAND, user=g.get("user"), today=business_date().strftime("%m/%d/%Y"),
-                sub_types=SUB_TYPES, funding=FUNDING)
+                sub_types=SUB_TYPES, funding=FUNDING, strip=STRIP)
 
 
 def message(title, msg, link=None, link_text="Click here to login again"):
@@ -288,7 +289,7 @@ def balance_enquiry():
 
 # ---------- open sub-account ----------
 
-OPEN_FIELDS = ("cifId", "acctType", "openAmt", "fundSrc", "nomName")
+OPEN_FIELDS = ("cifId", "acctType", "openAmt", "fundSrc", "nomName", "brCode")
 
 
 @app.route("/openAccount.do")
@@ -339,6 +340,8 @@ def open_account_review():
         return open_form_error(f, f"{BRAND['lbl_deposit']} cannot exceed {money(MAX_DEPOSIT)}.")
     if f["fundSrc"] not in FUNDING:
         return open_form_error(f, "Please select Funding Source.")
+    if BRAND["branches"] and f["brCode"] not in BRAND["branches"]:
+        return open_form_error(f, "Please select Branch Code.")
     appl = {**f, "cents": cents, "name": f"{m['first_name']} {m['last_name']}",
             "override": cents > OVERRIDE_ABOVE or g.sess.pop("force_override", False), "approved": False}
     if short_of_funds(appl):
@@ -371,9 +374,9 @@ def open_account_confirm():
     opened = business_date().isoformat()
     db().execute(
         "insert into accounts (acct_no, mem_no, acct_type, balance_cents, status, opened_on,"
-        " funding_source, nominee, notes, conf_no) values (?,?,?,?,'OPEN',?,?,?,?,?)",
+        " funding_source, nominee, notes, branch_code, conf_no) values (?,?,?,?,'OPEN',?,?,?,?,?,?)",
         (acct_no, appl["cifId"], appl["acctType"], appl["cents"], opened,
-         appl["fundSrc"], appl["nomName"], appl["notes"], conf_no))
+         appl["fundSrc"], appl["nomName"], appl["notes"], appl["brCode"] or None, conf_no))
     db().commit()
     page()
     return render_template("open_confirm.html", a=appl, acct_no=acct_no, conf_no=conf_no, opened=opened)

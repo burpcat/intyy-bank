@@ -21,6 +21,12 @@
         <td><select id="fundSrc" name="fundSrc"><option value="">--Select--</option>
         {% for s in funding %}<option{% if f.fundSrc == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
         </select></td></tr>
+    {% if brand.branches %}
+    <tr><td><label for="brCode">Branch Code</label> <span class="err">*</span></td>
+        <td><select id="brCode" name="brCode"><option value="">--Select--</option>
+        {% for b in brand.branches %}<option{% if f.brCode == b %} selected{% endif %}>{{ b }}</option>{% endfor %}
+        </select></td></tr>
+    {% endif %}
     <tr><td><label for="nomName">Nominee Name</label></td><td><input type="text" id="nomName" name="nomName" size="30" value="{{ f.nomName }}"></td></tr>
     <tr><td><label for="txtRemarks">Notes</label></td><td><textarea id="txtRemarks" name="txtRemarks" rows="3" cols="40">{{ f.notes }}</textarea></td></tr>
     </table>

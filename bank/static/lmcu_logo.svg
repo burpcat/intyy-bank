@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#1F4D2B"/>
+  <circle cx="32" cy="24" r="14" fill="#F3E6C0"/>
+  <path d="M4 40 Q16 34 24 40 T44 40 T60 40 V46 Q48 40 40 46 T20 46 T4 46 Z" fill="#F3E6C0"/>
+  <path d="M4 48 Q16 42 24 48 T44 48 T60 48 V52 Q48 46 40 52 T20 52 T4 52 Z" fill="#9CC3A5"/>
+  <text x="32" y="62" font-family="Verdana" font-size="8" font-weight="bold" fill="#F3E6C0" text-anchor="middle">LMCU</text>
+</svg>
