@@ -1,0 +1,7 @@
+<table width="100%" class="grid" cellspacing="0">
+<tr><th>Account No.</th><th>Account Type</th><th>Balance</th><th>Status</th><th>Opened On</th></tr>
+{% for a in accts %}
+<tr><td>{{ a.acct_no }}</td><td>{{ a.acct_type }}</td><td align="right">{{ a.balance_cents|money }}</td>
+    <td>{{ a.status }}</td><td>{{ a.opened_on|usdate }}</td></tr>
+{% endfor %}
+</table>

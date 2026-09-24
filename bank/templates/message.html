@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body %}
+<table width="70%" border="0" cellspacing="0" cellpadding="0" align="center"><tr><td>
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th align="left">{{ title }}</th></tr>
+  <tr><td style="padding:12px">
+    <table border="0" cellspacing="0" cellpadding="2"><tr>
+      <td valign="top"><img src="/static/warn.svg" width="16" height="16"></td>
+      <td>{{ msg }}</td>
+    </tr></table>
+    {% if link %}<br><a href="{{ link }}" target="{{ '_top' if 'login' in link else '_self' }}">{{ link_text }}</a>{% endif %}
+  </td></tr>
+  </table>
+</td></tr></table>
+{% endblock %}

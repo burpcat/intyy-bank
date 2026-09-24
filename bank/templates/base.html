@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>{{ brand.short }} :: {{ title }}</title>
+<link rel="stylesheet" type="text/css" href="/static/{{ brand.css }}">
+{% if user %}<script type="text/javascript">
+setTimeout(function () { alert('Your session will expire in 1 minute.'); }, 240000);
+</script>{% endif %}
+{% block head %}{% endblock %}
+</head>
+<body{% block bodyattr %}{% endblock %}>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr><td valign="top">
+  <table width="100%" border="0" cellspacing="0" cellpadding="3">
+  <tr><td class="pgtitle">&raquo; {{ title }}</td><td class="pgtitle" align="right">{{ today }}</td></tr>
+  </table>
+</td></tr>
+<tr><td valign="top" style="padding:8px">
+{% block body %}{% endblock %}
+</td></tr>
+<tr><td>
+  <table width="100%" border="0" cellspacing="0" cellpadding="4" class="footer">
+  <tr><td align="center">
+    Best viewed in Internet Explorer 6.0 at 1024x768 resolution.<br>
+    &copy; 2008 {{ brand.name }}. Federally insured by <a href="https://www.ncua.gov">NCUA</a>.
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

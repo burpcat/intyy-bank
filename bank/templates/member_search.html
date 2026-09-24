@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% set title = "Member Search" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+<form name="frmSearch" method="post" action="/memberSearchResult.do">
+<input type="hidden" name="pageSeq" value="{{ seq }}">
+  <table width="500" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Search Criteria</th></tr>
+  {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
+  <tr><td width="35%">{{ brand.lbl_mem }} <span class="err">*</span></td>
+      <td><input type="text" name="memNo" size="12" maxlength="6"></td></tr>
+  <tr><td>Name</td><td><input type="text" name="lastName" size="25"> <span class="small">(Last)</span></td></tr>
+  <tr><td colspan="2" align="center">
+    <table border="0" cellspacing="0" cellpadding="0"><tr><td>
+      <input type="submit" class="btn" value="Search">
+    </td></tr></table>
+  </td></tr>
+  </table>
+</form>
+</td></tr></table>
+{% endblock %}

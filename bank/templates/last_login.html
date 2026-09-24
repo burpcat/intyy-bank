@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% set title = "Last Login" %}
+{% block body %}
+<table width="60%" border="0" cellspacing="0" cellpadding="0" align="center"><tr><td>
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th align="left">Welcome {{ user }}</th></tr>
+  <tr><td style="padding:12px">
+    {% if last %}Your last login was on {{ last }}.{% else %}This is your first login.{% endif %}
+    <br><br>If you did not perform the last login, please contact the IT Help Desk immediately.
+    <br><br><a href="/main.do">Continue &raquo;</a>
+  </td></tr>
+  </table>
+</td></tr></table>
+{% endblock %}

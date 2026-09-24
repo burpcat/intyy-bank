@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="/static/{{ brand.css }}">
+</head>
+<body class="banner">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+  <td width="1%" rowspan="2"><img src="/static/{{ brand.logo }}" width="64" height="64"></td>
+  <td><span class="bankname">{{ brand.name }}</span></td>
+  <td align="right" valign="top">
+    <table border="0" cellspacing="0" cellpadding="2"><tr>
+      <td>Welcome, <b>{{ user }}</b> | {{ today }} |</td>
+      <td><a href="/logout.do" target="_top" class="bannerlink">Logout</a></td>
+    </tr></table>
+  </td>
+</tr>
+<tr><td colspan="2" class="small">Do not press Back or Refresh buttons. Use the menu on the left.</td></tr>
+<tr><td colspan="3" class="marq">
+  <marquee scrollamount="3">*** Share Certificate rates revised w.e.f. 01/01/2026: 12 months @ 4.10% APY ***
+  Money Market Account now @ 3.25% APY *** Share Savings dividend 0.50% APY ***
+  Beware of phishing e-mails. {{ brand.short }} will never ask for your password. ***</marquee>
+</td></tr>
+</table>
+</body>
+</html>

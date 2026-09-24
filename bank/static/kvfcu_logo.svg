@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#000066"/>
+  <path d="M12 52 L20 12 L44 12 L52 52 Z" fill="#FF9933"/>
+  <path d="M24 52 L28 26 L36 26 L40 52 Z" fill="#000066"/>
+  <text x="32" y="62" font-family="Verdana" font-size="8" font-weight="bold" fill="#FFFFFF" text-anchor="middle">KVFCU</text>
+</svg>

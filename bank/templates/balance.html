@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set title = "Balance Enquiry" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+<form name="frmBal" method="get" action="/balanceEnquiry.do">
+  <table border="0" cellspacing="0" cellpadding="2"><tr>
+    <td>{{ brand.lbl_mem }}</td>
+    <td><input type="text" name="memNo" size="10" maxlength="6" value="{{ m.mem_no if m else '' }}"></td>
+    <td><input type="submit" class="btn" value="Go"></td>
+  </tr></table>
+</form>
+</td></tr>
+{% if m %}
+<tr><td>
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th colspan="3" align="left">{{ m.first_name|upper }} {{ m.last_name|upper }} &mdash; {{ m.mem_no }}</th></tr>
+  <tr><th>Account No.</th><th>Account Type</th><th>Available Balance</th></tr>
+  {% for a in accts %}
+  <tr><td>{{ a.acct_no }}</td><td>{{ a.acct_type }}</td><td align="right">{{ a.balance_cents|money }}</td></tr>
+  {% endfor %}
+  <tr><td colspan="2" align="right"><b>Total</b></td><td align="right"><b>{{ total|money }}</b></td></tr>
+  </table>
+</td></tr>
+{% endif %}
+</table>
+{% endblock %}

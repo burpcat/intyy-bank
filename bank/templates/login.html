@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% set title = "Login" %}
+{% block head %}<script type="text/javascript">if (top != self) { top.location = self.location; }</script>{% endblock %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="banner">
+<tr><td width="1%"><img src="/static/{{ brand.logo }}" width="64" height="64"></td>
+<td><span class="bankname">{{ brand.name }}</span><br>Internet Banking &mdash; Staff Operations</td></tr>
+</table>
+<br>
+<table width="420" border="0" cellspacing="0" cellpadding="0" align="center"><tr><td>
+<form name="frmLogin" method="post" action="/login.do" autocomplete="off">
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Staff Login</th></tr>
+  {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
+  <tr><td width="40%">User ID</td><td><input type="text" name="userId" size="20" maxlength="20"></td></tr>
+  <tr><td>Password</td><td><input type="password" name="pwd" size="20" maxlength="30"></td></tr>
+  <tr><td colspan="2" align="center">
+    <input type="submit" class="btn" value="Login">&nbsp;<input type="reset" class="btn" value="Clear">
+  </td></tr>
+  </table>
+</form>
+<p class="warn">Do not press Back or Refresh buttons while a transaction is in progress.</p>
+<p class="small">Unauthorised access to this system is prohibited and punishable under law.</p>
+</td></tr></table>
+{% endblock %}

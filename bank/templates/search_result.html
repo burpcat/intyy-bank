@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% set title = "Member Search Result" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+  <table width="100%" class="grid" cellspacing="0">
+  <tr><th>Sl.</th><th>{{ brand.lbl_mem }}</th><th>Member Name</th><th>City</th><th>Phone</th></tr>
+  {% for m in rows %}
+  <tr><td>{{ loop.index }}</td>
+      <td><a href="/memberDetail.do?memNo={{ m.mem_no }}">{{ m.mem_no }}</a></td>
+      <td>{{ m.last_name|upper }}, {{ m.first_name|upper }}</td>
+      <td>{{ m.city }}</td><td>{{ m.phone }}</td></tr>
+  {% else %}
+  <tr><td colspan="5" align="center">No records found.</td></tr>
+  {% endfor %}
+  </table>
+  <br><a href="/memberSearch.do">New Search</a>
+</td></tr></table>
+{% endblock %}
