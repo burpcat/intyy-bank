@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% set title = "Open Sub-Account - Confirmation" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+  <table width="600" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Transaction Successful</th></tr>
+  <tr><td colspan="2">The sub-account has been opened successfully. Please note the confirmation number for future reference.</td></tr>
+  <tr><td width="35%">Confirmation No.</td><td><b>{{ conf_no }}</b></td></tr>
+  <tr><td>Account No.</td><td><b>{{ acct_no }}</b></td></tr>
+  <tr><td>A/c Holder ID</td><td>{{ a.cifId }}</td></tr>
+  <tr><td>Member Name</td><td>{{ a.name|upper }}</td></tr>
+  <tr><td>Type of A/c</td><td>{{ a.acctType }}</td></tr>
+  <tr><td>{{ brand.lbl_deposit }}</td><td>{{ a.cents|money }}</td></tr>
+  <tr><td>Funding Source</td><td>{{ a.fundSrc }}</td></tr>
+  <tr><td>Nominee</td><td>{{ a.nomName }}</td></tr>
+  <tr><td>Remarks</td><td style="white-space:pre-wrap">{{ a.notes }}</td></tr>
+  <tr><td>Opened On</td><td>{{ opened|usdate }}</td></tr>
+  </table>
+  <br><a href="/memberDetail.do?memNo={{ a.cifId }}">View Member</a> | <a href="javascript:window.print()">Print</a>
+</td></tr></table>
+{% endblock %}

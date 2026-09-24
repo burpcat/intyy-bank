@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% set title = "Close Sub-Account - Reason" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+<p class="warn">Do not press Back or Refresh buttons.</p>
+<form name="frmReason" method="post" action="/closeAccountConfirm.do">
+<input type="hidden" name="acctNo" value="{{ a.acct_no }}">
+  <table width="600" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Account Closure</th></tr>
+  {% if error %}<tr><td colspan="2" class="err">{{ error }}</td></tr>{% endif %}
+  <tr><td width="35%">Account No.</td><td>{{ a.acct_no }}</td></tr>
+  <tr><td>Account Type</td><td>{{ a.acct_type }}</td></tr>
+  <tr><td>Balance</td><td>{{ a.balance_cents|money }} <span class="small">(will be transferred to Primary Savings)</span></td></tr>
+  <tr><td>Reason for Closure <span class="err">*</span></td>
+      <td><select name="reason"><option value="">--Select--</option>
+      {% for r in reasons %}<option>{{ r }}</option>{% endfor %}</select></td></tr>
+  <tr><td colspan="2"><textarea name="remarks" rows="2" cols="50"></textarea></td></tr>
+  <tr><td colspan="2" align="center">
+    <input type="submit" class="btn" value="Close Account">
+  </td></tr>
+  </table>
+</form>
+</td></tr></table>
+{% endblock %}

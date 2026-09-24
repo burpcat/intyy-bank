@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% set title = "Close Sub-Account - Confirmation" %}
+{% block body %}
+<table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+  <table width="600" class="grid" cellspacing="0">
+  <tr><th colspan="2" align="left">Transaction Successful</th></tr>
+  <tr><td colspan="2">The account has been closed.</td></tr>
+  <tr><td width="35%">Closure No.</td><td><b>{{ closure_no }}</b></td></tr>
+  <tr><td>Account No.</td><td>{{ a.acct_no }}</td></tr>
+  <tr><td>Account Type</td><td>{{ a.acct_type }}</td></tr>
+  <tr><td>Amount Transferred</td><td>{{ a.balance_cents|money }} to {{ primary }}</td></tr>
+  <tr><td>Closed On</td><td>{{ closed|usdate }}</td></tr>
+  </table>
+  <br><a href="/memberDetail.do?memNo={{ a.mem_no }}">View Member</a>
+</td></tr></table>
+{% endblock %}

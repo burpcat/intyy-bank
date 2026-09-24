@@ -4,10 +4,12 @@ Run behind the chaos proxy only: every request must carry X-KVFCU-Proxy.
 """
 import json
 import os
+import re
 import secrets
 import sqlite3
 import time
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 
 from flask import Flask, g, make_response, redirect, render_template, request
@@ -22,9 +24,16 @@ USERS = {os.environ[f"KVFCU_{r}_USER"]: (os.environ[f"KVFCU_{r}_PASS"], r.lower(
 
 BRANDS = {
     "keystone": dict(name="Keystone Valley Federal Credit Union", short="KVFCU", css="kvfcu.css",
-                     logo="kvfcu_logo.svg", lbl_mem="Member No."),
+                     logo="kvfcu_logo.svg", prefix="KV", lbl_mem="Member No.", lbl_deposit="Opening Deposit"),
 }
 BRAND = BRANDS["keystone"]
+
+PRIMARY = "Primary Savings"
+SUB_TYPES = ["Share Savings", "Money Market", "Share Certificate"]
+FUNDING = ["Cash", "Transfer from primary savings", "Check"]
+CLOSE_REASONS = ["Opened in error", "Duplicate account", "Member request", "Other"]
+MIN_DEPOSIT, MAX_DEPOSIT, OVERRIDE_ABOVE = 25_00, 10_000_00, 5_000_00  # cents
+MAX_OPEN_SUBS = 3
 
 app = Flask(__name__)
 
@@ -57,7 +66,8 @@ def usdate(iso):
 
 @app.context_processor
 def _ctx():
-    return dict(brand=BRAND, user=g.get("user"), today=date.today().strftime("%m/%d/%Y"))
+    return dict(brand=BRAND, user=g.get("user"), today=business_date().strftime("%m/%d/%Y"),
+                sub_types=SUB_TYPES, funding=FUNDING)
 
 
 def message(title, msg, link=None, link_text="Click here to login again"):
@@ -121,6 +131,47 @@ def member(mem_no):
 
 def accounts(mem_no):
     return db().execute("select * from accounts where mem_no=? order by acct_no", (mem_no,)).fetchall()
+
+
+def account(acct_no):
+    return db().execute("select * from accounts where acct_no=?", (acct_no,)).fetchone()
+
+
+def open_subs(mem_no):
+    return db().execute("select count(*) from accounts where mem_no=? and status='OPEN' and acct_type<>?",
+                        (mem_no, PRIMARY)).fetchone()[0]
+
+
+def next_seq(name):
+    db().execute("update seq set value=value+1 where name=?", (name,))
+    return db().execute("select value from seq where name=?", (name,)).fetchone()[0]
+
+
+def business_date():
+    return date.today()
+
+
+def can_transact():
+    return g.role in ("teller", "supervisor")
+
+
+def denied():
+    return message("Permission Denied", "You are not authorised to perform this transaction.")
+
+
+def no_records():
+    return message("Message", "No records found.", "/memberSearch.do", "Back to search")
+
+
+def not_eligible():
+    return message("Member Not Eligible",
+                   "Member not eligible for a new sub-account. Please contact your branch manager.")
+
+
+def parse_amount(text):
+    """'$1,250.5' -> 125050 cents; None if not a plain amount."""
+    text = text.strip().replace(",", "").removeprefix("$")
+    return int(Decimal(text) * 100) if re.fullmatch(r"\d{1,9}(\.\d{1,2})?", text) else None
 
 
 # ---------- login / frames ----------
@@ -201,7 +252,7 @@ def member_search_result():
 def member_detail():
     m = member(request.args.get("memNo", ""))
     if m is None:
-        return message("Member Detail", "No records found.", "/memberSearch.do", "Back to search")
+        return no_records()
     page()
     return render_template("member_detail.html", m=m, accts=accounts(m["mem_no"]))
 
@@ -216,3 +267,149 @@ def balance_enquiry():
     accts = [a for a in accounts(mem_no) if a["status"] == "OPEN"] if m else []
     return render_template("balance.html", m=m, accts=accts,
                            total=sum(a["balance_cents"] for a in accts))
+
+
+# ---------- open sub-account ----------
+
+OPEN_FIELDS = ("cifId", "acctType", "openAmt", "fundSrc", "nomName")
+
+
+@app.route("/openAccount.do")
+def open_account():
+    if not can_transact():
+        return denied()
+    mem_no = request.args.get("memNo", "").strip()
+    if mem_no:
+        if member(mem_no) is None:
+            return no_records()
+        if open_subs(mem_no) >= MAX_OPEN_SUBS:
+            return not_eligible()
+    return render_template("open_account.html", seq=page(), f={"cifId": mem_no})
+
+
+def open_form_error(f, error):
+    return render_template("open_account.html", seq=page(), f=f, error=error)
+
+
+@app.route("/openAccountReview.do", methods=["POST"])
+def open_account_review():
+    if not can_transact():
+        return denied()
+    if stale():
+        return page_expired()
+    pending = g.sess.setdefault("pending", {})
+    app_id = request.form.get("appId")
+    if app_id:  # re-display of an existing application (supervisor pop-up reload)
+        appl = pending.get(app_id)
+        if appl is None:
+            return page_expired()
+        return render_template("open_review.html", seq=page(), app_id=app_id, a=appl)
+    f = {k: request.form.get(k, "").strip() for k in OPEN_FIELDS}
+    f["notes"] = request.form.get("txtRemarks", "")  # stored and shown exactly as typed
+    m = member(f["cifId"])
+    if m is None:
+        return no_records()
+    if open_subs(m["mem_no"]) >= MAX_OPEN_SUBS:
+        return not_eligible()
+    if f["acctType"] not in SUB_TYPES:
+        return open_form_error(f, "Please select Account Type.")
+    cents = parse_amount(f["openAmt"])
+    if cents is None:
+        return open_form_error(f, f"Please enter a valid {BRAND['lbl_deposit']}.")
+    if cents < MIN_DEPOSIT:
+        return open_form_error(f, f"{BRAND['lbl_deposit']} must be at least {money(MIN_DEPOSIT)}.")
+    if cents > MAX_DEPOSIT:
+        return open_form_error(f, f"{BRAND['lbl_deposit']} cannot exceed {money(MAX_DEPOSIT)}.")
+    if f["fundSrc"] not in FUNDING:
+        return open_form_error(f, "Please select Funding Source.")
+    app_id = secrets.token_hex(6).upper()
+    pending[app_id] = appl = {**f, "cents": cents, "name": f"{m['first_name']} {m['last_name']}",
+                              "override": cents > OVERRIDE_ABOVE, "approved": False}
+    return render_template("open_review.html", seq=page(), app_id=app_id, a=appl)
+
+
+@app.route("/openAccountConfirm.do", methods=["POST"])
+def open_account_confirm():
+    # Deliberately no double-submit protection: every POST here opens another account.
+    if not can_transact():
+        return denied()
+    appl = g.sess.get("pending", {}).get(request.form.get("appId", ""))
+    if appl is None:
+        return page_expired()
+    if appl["override"] and not appl["approved"]:
+        return message("Supervisor Approval Required",
+                       "This transaction requires supervisor approval before it can be confirmed.")
+    if open_subs(appl["cifId"]) >= MAX_OPEN_SUBS:
+        return not_eligible()
+    acct_no = f"{next_seq('acct'):012d}"
+    conf_no = f"{BRAND['prefix']}{next_seq('conf'):08d}"
+    opened = business_date().isoformat()
+    db().execute(
+        "insert into accounts (acct_no, mem_no, acct_type, balance_cents, status, opened_on,"
+        " funding_source, nominee, notes, conf_no) values (?,?,?,?,'OPEN',?,?,?,?,?)",
+        (acct_no, appl["cifId"], appl["acctType"], appl["cents"], opened,
+         appl["fundSrc"], appl["nomName"], appl["notes"], conf_no))
+    db().commit()
+    page()
+    return render_template("open_confirm.html", a=appl, acct_no=acct_no, conf_no=conf_no, opened=opened)
+
+
+# ---------- close sub-account ----------
+
+@app.route("/closeAccount.do")
+def close_account():
+    if not can_transact():
+        return denied()
+    mem_no = request.args.get("memNo", "").strip()
+    m = member(mem_no) if mem_no else None
+    if mem_no and m is None:
+        return no_records()
+    accts = [a for a in accounts(mem_no) if a["status"] == "OPEN"] if m else []
+    return render_template("close_account.html", seq=page(), m=m, accts=accts)
+
+
+def closable(acct_no):
+    """(account, None) if it may be closed, else (None, error page)."""
+    a = account(acct_no)
+    if a is None or a["status"] != "OPEN":
+        return None, message("Message", "Account not found or already closed.")
+    if a["acct_type"] == PRIMARY:
+        return None, message("Message", "Primary Savings account cannot be closed.")
+    return a, None
+
+
+@app.route("/closeAccountReason.do", methods=["POST"])
+def close_account_reason():
+    if not can_transact():
+        return denied()
+    if stale():
+        return page_expired()
+    a, err = closable(request.form.get("acctNo", ""))
+    if err:
+        return err
+    return render_template("close_reason.html", seq=page(), a=a, reasons=CLOSE_REASONS)
+
+
+@app.route("/closeAccountConfirm.do", methods=["POST"])
+def close_account_confirm():
+    if not can_transact():
+        return denied()
+    a, err = closable(request.form.get("acctNo", ""))
+    if err:
+        return err
+    reason, remarks = request.form.get("reason", ""), request.form.get("remarks", "").strip()
+    if reason not in CLOSE_REASONS:
+        return render_template("close_reason.html", seq=page(), a=a, reasons=CLOSE_REASONS,
+                               error="Please select Reason for Closure.")
+    primary = db().execute("select acct_no from accounts where mem_no=? and acct_type=? and status='OPEN'",
+                           (a["mem_no"], PRIMARY)).fetchone()[0]
+    closure_no = f"CL{next_seq('closure'):08d}"
+    closed = business_date().isoformat()
+    db().execute("update accounts set balance_cents=balance_cents+? where acct_no=?",
+                 (a["balance_cents"], primary))
+    db().execute("update accounts set status='CLOSED', balance_cents=0, closed_on=?, closure_no=?,"
+                 " close_reason=? where acct_no=?",
+                 (closed, closure_no, f"{reason}: {remarks}" if remarks else reason, a["acct_no"]))
+    db().commit()
+    page()
+    return render_template("close_confirm.html", a=a, primary=primary, closure_no=closure_no, closed=closed)
