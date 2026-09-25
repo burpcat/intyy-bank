@@ -19,7 +19,7 @@
 - No real money movement. Cash and Check funding are only recorded (`bank/app.py` open_account_confirm).
 - Fault pages are rendered by the proxy (`chaos/proxy.py` bank_page), not by app templates.
 - Both variants use the same seed data. Branch codes are made up (`bank/brands.py`).
-- Not tried in an interactive browser: pop-up open/reload/close, `confirm()` dialogs, the 4-minute alert.
+- Parts not yet tried in an interactive browser: see CLAUDE.md "Current state".
 
 ### Artifact schema changes
 - CONTRACT.md 1.0.0 -> 1.1.0: added `KVFCU_DROP_LABELS` and `KVFCU_LABEL_SEED`. Additive, not breaking.
